@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ambedkar Ai - Legal Consultation Chat</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚖️</text></svg>">
+</head>
+<body>
+    <!-- Header -->
+    <header class="main-header">
+        <div class="header-container">
+            <div class="logo-section">
+                <div class="logo">⚖️</div>
+                <div class="brand-info">
+                    <h1>Ambedkar Ai</h1>
+                    <p>Expert Legal Consultation & Guidance</p>
+                </div>
+            </div>
+            <nav class="nav-menu">
+                <a href="#" class="nav-link active">Chat</a>
+                <a href="#" class="nav-link">Legal Resources</a>
+                <a href="#" class="nav-link">Case Studies</a>
+                <a href="#" class="nav-link">About</a>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h3>Legal Categories</h3>
+            </div>
+            <div class="category-list">
+                <button class="category-btn active" onclick="setCategory('general')">
+                    <span class="category-icon">💼</span>
+                    General Law
+                </button>
+                <button class="category-btn" onclick="setCategory('contract')">
+                    <span class="category-icon">📋</span>
+                    Contract Law
+                </button>
+                <button class="category-btn" onclick="setCategory('property')">
+                    <span class="category-icon">🏠</span>
+                    Property Law
+                </button>
+                <button class="category-btn" onclick="setCategory('criminal')">
+                    <span class="category-icon">⚖️</span>
+                    Criminal Law
+                </button>
+                <button class="category-btn" onclick="setCategory('family')">
+                    <span class="category-icon">👨‍👩‍👧‍👦</span>
+                    Family Law
+                </button>
+                <button class="category-btn" onclick="setCategory('corporate')">
+                    <span class="category-icon">🏢</span>
+                    Corporate Law
+                </button>
+                <button class="category-btn" onclick="setCategory('labor')">
+                    <span class="category-icon">👷</span>
+                    Labor Law
+                </button>
+                <button class="category-btn" onclick="setCategory('tax')">
+                    <span class="category-icon">💰</span>
+                    Tax Law
+                </button>
+            </div>
+            
+            <div class="sidebar-footer">
+                <div class="disclaimer">
+                    <h4>⚠️ Legal Disclaimer</h4>
+                    <p>This AI provides general legal information only. For specific legal advice, consult a qualified lawyer.</p>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Chat Area -->
+        <section class="chat-section">
+            <div class="chat-container">
+                <!-- Chat Header -->
+                <div class="chat-header">
+                    <div class="chat-info">
+                        <div class="bot-avatar">
+                            <div class="avatar-icon">🤖</div>
+                            <div class="status-indicator"></div>
+                        </div>
+                        <div class="bot-details">
+                            <h3>Ambedkar Ai</h3>
+                            <span class="status">Online • Specialized in Indian Legal System</span>
+                        </div>
+                    </div>
+                    <div class="chat-actions">
+                        <button class="action-btn" title="Clear Chat" onclick="clearChat()">🗑️</button>
+                        <button class="action-btn" title="Export Chat">📄</button>
+                        <button class="action-btn" title="Settings">⚙️</button>
+                    </div>
+                </div>
+
+                <!-- Chat Messages -->
+                <div class="chat-messages" id="chatMessages">
+                    <!-- Welcome Message -->
+                    <div class="welcome-section">
+                        <div class="welcome-avatar">⚖️</div>
+                        <div class="welcome-content">
+                            <h2>Welcome to Ambedkar Ai</h2>
+                            <p>I'm here to help you understand Indian legal matters. I can assist with:</p>
+                            <ul>
+                                <li>Constitutional Law & Fundamental Rights</li>
+                                <li>Contract & Commercial Law</li>
+                                <li>Property & Real Estate Law</li>
+                                <li>Criminal Law & Procedures</li>
+                                <li>Family Law & Personal Matters</li>
+                                <li>Corporate & Business Law</li>
+                            </ul>
+                            <p class="welcome-note">Ask me any legal question to get started!</p>
+                        </div>
+                    </div>
+
+                    <!-- Typing Indicator -->
+                    <div class="typing-indicator" id="typingIndicator" style="display: none;">
+                        <div class="message-avatar">🤖</div>
+                        <div class="typing-bubble">
+                            <div class="typing-dots">
+                                <span></span>
+                                <span></span>
+                                <span></span>
+                            </div>
+                            <span class="typing-text">AI is analyzing your legal query...</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Suggestions -->
+                <!-- <div class="quick-suggestions">
+                    <div class="suggestions-header">
+                        <span>💡 Quick Questions</span>
+                    </div>
+                    <div class="suggestions-grid">
+                        <button class="suggestion-btn" onclick="sendQuickMessage('What are the fundamental rights under Indian Constitution?')">
+                            📜 Fundamental Rights
+                        </button>
+                        <button class="suggestion-btn" onclick="sendQuickMessage('How to register a property in India?')">
+                            🏠 Property Registration
+                        </button>
+                        <button class="suggestion-btn" onclick="sendQuickMessage('What is the process for filing an FIR?')">
+                            🚔 Filing FIR
+                        </button>
+                        <button class="suggestion-btn" onclick="sendQuickMessage('What are the grounds for divorce in India?')">
+                            💔 Divorce Laws
+                        </button>
+                        <button class="suggestion-btn" onclick="sendQuickMessage('How to start a company in India?')">
+                            🏢 Company Registration
+                        </button>
+                        <button class="suggestion-btn" onclick="sendQuickMessage('What are employee rights in India?')">
+                            👷 Employee Rights
+                        </button>
+                    </div>
+                </div> -->
+
+                <!-- Chat Input -->
+                <div class="chat-input-container">
+                    <div class="input-wrapper">
+                        <div class="chat-input">
+                            <button class="attachment-btn" title="Attach document">📎</button>
+                            <input type="file" id="fileInput" accept=".pdf,.doc,.docx,.txt">
+                            <input type="text" id="messageInput" placeholder="Ask any question about Indian Law..." autocomplete="off">
+                            <button class="voice-btn" title="Voice input">🎤</button>
+                            <button class="send-btn" id="sendBtn" onclick="sendMessage()">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <line x1="22" y1="2" x2="11" y2="13"></line>
+                                    <polygon points="22,2 15,22 11,13 2,9"></polygon>
+                                </svg>
+                            </button>
+                        </div>
+                        <div class="input-footer">
+                            <span class="char-count" id="charCount">0/500</span>
+                            <span class="ai-status">🤖 AI Ready</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="main-footer">
+        <div class="footer-content">
+            <div class="footer-section">
+                <h4>Legal Resources</h4>
+                <ul>
+                    <li><a href="#">Indian Constitution</a></li>
+                    <li><a href="#">Supreme Court Judgments</a></li>
+                    <li><a href="#">Legal Acts & Amendments</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h4>Quick Links</h4>
+                <ul>
+                    <li><a href="#">Privacy Policy</a></li>
+                    <li><a href="#">Terms of Service</a></li>
+                    <li><a href="#">Contact Support</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h4>Disclaimer</h4>
+                <p>This AI assistant provides general legal information and should not be considered as professional legal advice. Always consult with a qualified lawyer for specific legal matters.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>
