@@ -2,22 +2,34 @@ import os
 import traceback
 import PyPDF2
 import docx2txt
-from flask import Flask, request, jsonify
+from flask import Flask, request, session, jsonify
 from flask_cors import CORS
-from googletrans import Translator
-from google.generativeai import configure, GenerativeModel
+from pymongo import MongoClient
 from bs4 import BeautifulSoup
 import requests
+# from googletrans import Translator
+from google.generativeai import configure, GenerativeModel
+from routes.auth import auth_routes  # ✅ use here
+from routes.admin import admin_routes  # ✅ use here
 
+
+# chat_routes = Blueprint('chat_routes', __name__)  
 # === Flask Setup ===
 app = Flask(__name__)
+app.secret_key = os.urandom(24)
 CORS(app)
+# app.register_blueprint(auth_routes)
+# app.register_blueprint(chat_routes)
+# app.config['SESSION_TYPE'] = 'filesystem'
+
+
+# === MongoDB ===
+client = MongoClient('mongodb://localhost:27017/')
+db = client["chat_db"]
 
 # === Gemini Setup ===
 configure(api_key="AIzaSyBqk4WXN7k4UhjaBCzgSmuWn_bEor5aSyw")  # Replace with your Gemini key
 model = GenerativeModel("gemini-2.0-flash")
-
-# === Constants ===
 TEMPERATURE = 0.4
 system_instruction = (
     "You are Ambedkar AI, a legal assistant exclusively trained on the Indian legal system.\n"
@@ -25,7 +37,7 @@ system_instruction = (
     "Never provide advice based on international laws. Always cite IPC, CrPC, or applicable Indian acts.\n"
 )
 
-# === User Token Plans ===
+# === Token Management ===
 USER_TOKENS = {
     "555": 10000,
     "1111": 200000,
@@ -65,7 +77,7 @@ def extract_text(file_path):
     except Exception as e:
         return f"[ERROR] Failed to extract: {e}"
 
-# === Google Translate ===
+# === Translate ===
 def translate_text(text, target_lang='en'):
     try:
         if not text:
@@ -87,11 +99,14 @@ def fetch_legal_news():
     except Exception as e:
         return f"Error fetching news: {e}"
 
-# === API Endpoint ===
+# === Chat API ===
 @app.route('/chat', methods=['POST'])
+# @login_required_api
 def chat():
+    return jsonify({"success": True, "response": "Chat API is working!"})
+    if 'email' not in session:
+        return jsonify({"error": "Login required"}), 401
     try:
-        # Accept both JSON and form-data
         if request.is_json:
             user_input = request.json.get('message')
             user_id = request.json.get('user_id', '555')
@@ -101,7 +116,6 @@ def chat():
             user_id = request.form.get('user_id', '555')
             file = request.files.get('file')
 
-        # If neither message nor file is provided
         if not user_input and not file:
             return jsonify({"error": "Please provide a message or upload a file."}), 400
 
@@ -117,14 +131,12 @@ def chat():
 
         if document_text:
             prompt += f"Document:\n{document_text}\n\n"
-
         if user_input:
             prompt += f"User Question:\n{user_input}\n"
         else:
             prompt += "User Question: Please analyze the uploaded document.\n"
 
         response = model.generate_content(prompt, generation_config={"temperature": TEMPERATURE})
-
         tokens_used = len(prompt.split()) + len(response.text.split())
         status, msg = check_token_limit(user_id, tokens_used)
         if not status:
@@ -140,7 +152,22 @@ def chat():
         traceback.print_exc()
         return jsonify({"error": str(e)}), 500
 
+# === Import Routes & Register ===
+from routes.auth import auth_routes, init_db as init_auth
+from routes.chat import chat_routes, init_db as init_chat
+from routes.admin import admin_routes, init_db as init_admin
 
-# === Run the Flask App ===
+# Inject DB
+init_auth(db)
+init_chat(db)
+init_admin(db)
+
+# Register Routes
+app.register_blueprint(auth_routes, url_prefix='/')
+app.register_blueprint(chat_routes, url_prefix='/chat')
+app.register_blueprint(admin_routes, url_prefix='/admin')
+# app.register_blueprint(auth_routes)
+
+# Run App
 if __name__ == "__main__":
     app.run(debug=True, port=5000)

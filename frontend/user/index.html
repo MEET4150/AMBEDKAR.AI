@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>AI Style Login & Signup</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body, html {
+      height: 100%;
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      overflow: hidden;
+    }
+    #particles-js {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      background: #0f2027;
+      background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+      z-index: 0;
+    }
+    .glass-card {
+      position: relative;
+      z-index: 1;
+      backdrop-filter: blur(15px);
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 20px;
+      padding: 30px;
+      width: 100%;
+      max-width: 400px;
+      color: white;
+      box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+    }
+    .form-control {
+      background: rgba(255, 255, 255, 0.2);
+      border: none;
+      color: white;
+    }
+    .form-control::placeholder {
+      color: #ddd;
+    }
+    .nav-tabs .nav-link {
+      color: #ccc;
+      border: none;
+      font-weight: bold;
+    }
+    .nav-tabs .nav-link.active {
+      background-color: transparent;
+      border-bottom: 2px solid #00d4ff;
+      color: #fff;
+    }
+    .btn-custom {
+      background: #00d4ff;
+      border: none;
+      width: 100%;
+      color: black;
+      font-weight: bold;
+      padding: 10px;
+      border-radius: 10px;
+    }
+    .btn-custom:hover {
+      background: #00c1e0;
+    }
+    .container-center {
+      z-index: 1;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Particle background -->
+  <div id="particles-js"></div>
+
+  <!-- Auth form -->
+  <div class="container-center">
+    <div class="glass-card">
+      <ul class="nav nav-tabs justify-content-center mb-4" id="formTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+          <button class="nav-link active" id="login-tab" data-bs-toggle="tab" data-bs-target="#login" type="button" role="tab">Login</button>
+        </li>
+        <li class="nav-item" role="presentation">
+          <button class="nav-link" id="signup-tab" data-bs-toggle="tab" data-bs-target="#signup" type="button" role="tab">Sign Up</button>
+        </li>
+      </ul>
+
+      <div class="tab-content" id="formTabsContent">
+        <!-- Login Form -->
+        <div class="tab-pane fade show active" id="login" role="tabpanel">
+          <form>
+            <div class="mb-3">
+              <input type="email" class="form-control" placeholder="Email" required>
+            </div>
+            <div class="mb-3">
+              <input type="password" class="form-control" placeholder="Password" required>
+            </div>
+            <button type="submit" class="btn btn-custom">Login</button>
+            <div class="mt-2 text-center">
+              <span class="status-message" style="font-size: 14px;"></span>
+            </div>      
+          </form>
+        </div>
+
+        <!-- Signup Form -->
+        <div class="tab-pane fade" id="signup" role="tabpanel">
+          <form>
+            <div class="mb-3">
+              <input type="text" class="form-control" placeholder="Full Name" required>
+            </div>
+            <div class="mb-3">
+              <input type="email" class="form-control" placeholder="Email" required>
+            </div>
+            <div class="mb-3">
+              <input type="password" class="form-control" placeholder="Create Password" required>
+            </div>
+            <button type="submit" class="btn btn-custom signup">Sign Up</button>
+            <div class="mt-2 text-center">
+              <span class="status-message" style="font-size: 14px;"></span>
+            </div>      
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bootstrap & particles.js -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/particles.js@2.0.0/particles.min.js"></script>
+
+<script>
+  const baseURL = "http://127.0.0.1:5000"; // ← Replace with your base URL
+
+  function setStatus(formEl, msg, type = "info") {
+    const status = formEl.querySelector(".status-message");
+    status.innerText = msg;
+    status.style.color = type === "error" ? "#ff4d4d" : type === "success" ? "#00ffcc" : "#ccc";
+  }
+
+  function toggleButton(btn, loading = false) {
+    btn.disabled = loading;
+    btn.innerText = loading ? "Loading..." : btn.dataset.originalText;
+  }
+
+  // Login
+  document.querySelector("#login form").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const form = e.target;
+    const email = form[0].value.trim();
+    const password = form[1].value.trim();
+    const button = form.querySelector("button");
+
+    if (!email || !password) {
+      setStatus(form, "Please fill all fields.", "error");
+      return;
+    }
+
+    toggleButton(button, true);
+    setStatus(form, "");
+
+    try {
+      const res = await fetch(`${baseURL}/api/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setStatus(form, "Login successful!", "success");
+        setTimeout(() => {
+          window.location.href = "file:///D:/legal_ai_assistant/frontend/chat/index.html";
+        }, 1000);
+      } else {
+        setStatus(form, data.message || "Login failed", "error");
+      }
+    } catch (err) {
+      setStatus(form, "Error: " + err.message, "error");
+    } finally {
+      toggleButton(button, false);
+    }
+  });
+
+  // Signup
+  document.querySelector("#signup form").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const form = e.target;
+    const name = form[0].value.trim();
+    const email = form[1].value.trim();
+    const password = form[2].value.trim();
+    const button = form.querySelector("button");
+
+    if (!name || !email || !password) {
+      setStatus(form, "Please fill all fields.", "error");
+      return;
+    }
+
+    toggleButton(button, true);
+    setStatus(form, "");
+
+    try {
+      const res = await fetch(`${baseURL}/api/signup`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, email, password }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setStatus(form, "Signup successful! You can login now.", "success");
+        setTimeout(() => {
+          document.querySelector("#login-tab").click();
+        }, 1000);
+      } else {
+        setStatus(form, data.message || "Signup failed", "error");
+      }
+    } catch (err) {
+      setStatus(form, "Error: " + err.message, "error");
+    } finally {
+      toggleButton(button, false);
+    }
+  });
+
+  // Save original button text for toggleButton
+  document.querySelectorAll("form button").forEach((btn) => {
+    btn.dataset.originalText = btn.innerText;
+  });
+</script>
+
+
+
+  <!-- Particle config -->
+  <script>
+    particlesJS("particles-js", {
+      "particles": {
+        "number": {
+          "value": 60,
+          "density": {
+            "enable": true,
+            "value_area": 1000
+          }
+        },
+        "color": {
+          "value": "#00d4ff"
+        },
+        "shape": {
+          "type": "circle",
+        },
+        "opacity": {
+          "value": 0.4,
+          "random": true
+        },
+        "size": {
+          "value": 3,
+          "random": true
+        },
+        "line_linked": {
+          "enable": true,
+          "distance": 150,
+          "color": "#00d4ff",
+          "opacity": 0.3,
+          "width": 1
+        },
+        "move": {
+          "enable": true,
+          "speed": 2,
+          "direction": "none",
+          "random": true,
+          "out_mode": "bounce"
+        }
+      },
+      "interactivity": {
+        "events": {
+          "onhover": {
+            "enable": true,
+            "mode": "grab"
+          }
+        },
+        "modes": {
+          "grab": {
+            "distance": 200,
+            "line_linked": {
+              "opacity": 0.5
+            }
+          }
+        }
+      },
+      "retina_detect": true
+    });
+  </script>
+</body>
+</html>
