@@ -54,7 +54,7 @@ document.addEventListener('DOMContentLoaded', function() {
 // Send message function
 async function sendMessage() {
     const message = messageInput.value.trim();
-    // if (!message) return;
+    if (!message) return;
 
     messageInput.disabled = true;
     sendBtn.disabled = true;
@@ -68,35 +68,51 @@ async function sendMessage() {
         const formData = new FormData();
         formData.append('message', message);
 
-        // Add file if selected
-        const fileInput = document.getElementById('fileInput'); // <input type="file" id="fileInput">
+        const fileInput = document.getElementById('fileInput');
         if (fileInput && fileInput.files.length > 0) {
             formData.append('file', fileInput.files[0]);
         }
 
         const response = await fetch('http://127.0.0.1:5000/chat', {
             method: 'POST',
-            body: formData // No need to set headers for FormData
+            body: formData
         });
-
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
 
         const data = await response.json();
         hideTypingIndicator();
 
-        const botResponse = data.response || '⚠️ Empty response. Please try again.';
+        // === Handle specific error messages ===
+        if (data.error) {
+            let customError = '';
+
+            if (data.error.toLowerCase().includes("login required")) {
+                customError = '🔒 Please log in to use the chat. [Login here](/login)';
+            } else if (data.error.toLowerCase().includes("insufficient tokens")) {
+                customError = '🪙 You have no tokens left. Please upgrade your plan to continue.';
+            } else if (data.error.toLowerCase().includes("no tokens")) {
+                customError = '🪙 Token balance not found. Contact support or upgrade your plan.';
+            } else {
+                customError = `❌ Error: ${data.error}`;
+            }
+
+            addMessage(customError, 'bot', true);
+            return;
+        }
+
+        // === Handle missing response ===
+        const botResponse = data.response?.trim();
+        if (!botResponse) {
+            addMessage('⚠️ AI returned an empty response. Please try again.', 'bot', true);
+            return;
+        }
+
         addMessage(botResponse, 'bot');
 
     } catch (error) {
-        console.error('Error calling API:', error);
         hideTypingIndicator();
-
         const errorMessage = error.message.includes('Failed to fetch')
-            ? '❌ Unable to connect to the server at http://127.0.0.1:5000. Make sure it is running.'
-            : `❌ Error: ${error.message}`;
-        
+            ? '❌ Unable to connect to the server. Please make sure the server is running at http://127.0.0.1:5000'
+            : `❌ Unexpected Error: ${error.message}`;
         addMessage(errorMessage, 'bot', true);
     } finally {
         messageInput.disabled = false;
@@ -104,6 +120,7 @@ async function sendMessage() {
         messageInput.focus();
     }
 }
+
 
 
 // Add message to chat

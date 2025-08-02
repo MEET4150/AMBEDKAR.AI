@@ -1,26 +1,34 @@
 import bcrypt
 from functools import wraps
 from flask import Blueprint, request, session, jsonify, render_template, redirect, url_for
-# from routes.auth import login_required_api
+# import razorpa
+import razorpay
+from dotenv import load_dotenv
+import os
+import razorpay
+from datetime import datetime
+
+load_dotenv()
+
+RAZORPAY_KEY_ID = os.getenv("RAZORPAY_KEY_ID")
+RAZORPAY_KEY_SECRET = os.getenv("RAZORPAY_KEY_SECRET")
+
+razorpay_client = razorpay.Client(auth=(RAZORPAY_KEY_ID, RAZORPAY_KEY_SECRET))
+
+
+
+from pymongo import MongoClient
+
+# Assuming you're already connected like this:
+from pymongo import MongoClient
+client = MongoClient("mongodb://localhost:27017/")
+db = client["user_payment"]
 
 auth_routes = Blueprint('auth_routes', __name__)
-db = None  # This will be set from app.py
 
 def init_db(database):
     global db
     db = database
-
-
-
-
-# Export the login_required_api so it can be imported in app.py
-# def login_required_api(f):
-#     @wraps(f)
-#     def decorated_function(*args, **kwargs):
-#         if 'email' not in session:
-#             return jsonify({'success': False, 'message': 'Login required'}), 401
-#         return f(*args, **kwargs)
-#     return decorated_function
 
 
 
@@ -101,3 +109,130 @@ def dashboard():
 def logout():
     session.clear()  # Clear all session data
     return render_template('auth/login.html')
+
+@auth_routes.route('/')
+def home():
+        return render_template('home/index.html')
+
+
+
+# Payment Code start
+
+@auth_routes.route('/payment')
+def payment():
+    if 'email' not in session:
+        return render_template('auth/login.html')  # Redirect to login if not logged in
+    return render_template('payment.html', user=session['email'])
+
+@auth_routes.route('/create-order', methods=['POST'])
+def create_order():
+    try:
+        email = session.get('email')
+        if not email:
+            return jsonify({"success": False, "message": "User not logged in."})
+
+        user = db.users.find_one({"email": email})
+        if not user:
+            return jsonify({"success": False, "message": "User not found in DB."})
+
+        data = request.get_json()
+        selected_plan = data.get('plan', 'basic').capitalize()
+
+
+        # Set plan amount based on selected plan
+        plan_amounts = {
+            "basic": 99,
+            "Standard": 555,
+            "Premium": 999
+        }
+        if selected_plan not in plan_amounts:
+            return jsonify({"success": False, "message": "Invalid plan selected."})
+
+        amount = plan_amounts[selected_plan] * 100  # paise
+
+        razorpay_order = razorpay_client.order.create({
+            "amount": amount,
+            "currency": "INR",
+            "payment_capture": 1
+        })
+
+        return jsonify({
+            "success": True,
+            "currency": "INR",
+            "data": {
+                "order_id": razorpay_order["id"],
+                "order_total": plan_amounts[selected_plan],
+                "userDetail": {
+                    "name": user['name'],
+                    "email": user['email'],
+                    "contact": user['contact']
+                }
+            }
+        })
+
+    except Exception as e:
+        return jsonify({"success": False, "message": str(e)})
+
+
+@auth_routes.route('/save-payment', methods=['POST'])
+def save_payment():
+    try:
+        data = request.get_json()
+        email = data['user']['email']
+        plan = data['plan']
+        payment_id = data['razorpay_payment_id']
+        order_id = data['razorpay_order_id']
+
+        # Save payment
+        db.payments.insert_one({
+            "payment_id": payment_id,
+            "order_id": order_id,
+            "plan": plan,
+            "user": data['user'],
+            "status": "success",
+            "timestamp": datetime.now()
+        })
+
+        # Save tokens only after payment
+        plan_tokens = {
+            "Basic": 10000,
+            "Standard": 40000,
+            "Premium": 100000
+        }
+        tokens_allocated = plan_tokens.get(plan, 0)
+
+        # Check if user already has a token record
+        existing = db.tokens.find_one({"email": email})
+        if existing:
+            db.tokens.update_one(
+                {"email": email},
+                {
+                    "$set": {
+                        "tokens": tokens_allocated,
+                        "plan": plan,
+                        "timestamp": datetime.now(),
+                        "used_tokens": 0
+                    }
+                }
+            )
+        else:
+            db.tokens.insert_one({
+                "email": email,
+                "plan": plan,
+                "tokens": tokens_allocated,
+                "timestamp": datetime.now(),
+                "used_tokens": 0
+            })
+
+        return jsonify({"success": True, "message": "Payment & tokens saved successfully."})
+
+    except Exception as e:
+        return jsonify({"success": False, "message": str(e)})
+
+
+@auth_routes.route('/order-confirm')
+def order_confirm():
+    return "✅ Payment Successful! Thank you for your order."
+
+
+# payment code end

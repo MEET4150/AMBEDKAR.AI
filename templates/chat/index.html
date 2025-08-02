@@ -24,6 +24,7 @@
                 <a href="#" class="nav-link">Legal Resources</a>
                 <a href="#" class="nav-link">Case Studies</a>
                 <a href="#" class="nav-link">About</a>
+                <a href="{{url_for('auth_routes.payment')}}" class="nav-link">Payment</a>
                 <a href="{{ url_for('auth_routes.logout') }}" class="nav-link">Logout</a>
 
             </nav>
@@ -245,12 +246,12 @@
 
 
 <style>
-    .attachment-btn {
-  background: none;
-  border: none;
-  font-size: 20px;
-  cursor: pointer;
-  color: #555;
+.attachment-btn {
+    background: none;
+    border: none;
+    font-size: 20px;
+    cursor: pointer;
+    color: #555;
 }
 .attachment-btn:hover {
   color: #007bff;

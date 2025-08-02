@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Subscription Plans</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background: radial-gradient(ellipse at center, #0f0f2b, #000000);
+      font-family: 'Segoe UI', sans-serif;
+      color: white;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    .pricing-box {
+      background: rgba(255, 255, 255, 0.05);
+      backdrop-filter: blur(20px);
+      border-radius: 20px;
+      padding: 40px;
+      width: 90%;
+      max-width: 800px;
+      text-align: center;
+      box-shadow: 0 0 30px rgba(98, 0, 255, 0.3);
+    }
+
+    .pricing-box h1 {
+      margin-bottom: 10px;
+      font-size: 28px;
+    }
+
+    .pricing-box p {
+      color: #ccc;
+      font-size: 14px;
+      margin-bottom: 25px;
+    }
+
+    .toggle {
+      display: inline-flex;
+      background: #1c1c3c;
+      border-radius: 8px;
+      overflow: hidden;
+      margin-bottom: 30px;
+    }
+
+    .toggle button {
+      padding: 8px 20px;
+      border: none;
+      background: transparent;
+      color: #ccc;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+
+    .toggle button.active {
+      background: #6200ff;
+      color: white;
+    }
+
+    .plans {
+      display: flex;
+      justify-content: space-around;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .plan {
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: 16px;
+      padding: 12px;
+      width: 220px;
+      transition: 0.3s;
+      border: 2px solid transparent;
+    }
+
+    .plan:hover {
+      border-color: #6200ff;
+    }
+
+    .plan h3 {
+      margin: 0;
+      font-size: 20px;
+    }
+
+    .plan .price {
+      font-size: 26px;
+      margin: 10px 0;
+    }
+
+    .plan .subtext {
+      font-size: 12px;
+      color: #aaa;
+    }
+
+    .plan button {
+      margin-top: 15px;
+      padding: 8px 16px;
+      background: #6200ff;
+      border: none;
+      border-radius: 6px;
+      color: white;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+
+    .plan button:hover {
+      background: #7f1aff;
+    }
+
+    .current-plan {
+      background: transparent;
+      border: 1px solid #444;
+      color: #aaa;
+    }
+
+    .bottom-note {
+      margin-top: 30px;
+      font-size: 12px;
+      color: #aaa;
+    }
+
+    .upgrade-btn {
+      margin-top: 15px;
+      padding: 10px 25px;
+      background: linear-gradient(90deg, #7b2ff7, #f107a3);
+      border: none;
+      color: white;
+      font-size: 14px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: 0.3s;
+      box-shadow: 0 0 12px rgba(255, 0, 200, 0.4);
+    }
+
+    .upgrade-btn:hover {
+      opacity: 0.9;
+    }
+  </style>
+</head>
+<body>
+
+<div class="pricing-box">
+  <h1>Subscription Plans</h1>
+  <p>Upgrade to access, User Roles and Permissions, Mobile accessibility, AI Tools, and Standard Support.</p>
+
+  <div class="toggle">
+    <button class="active" onclick="setPlan('monthly')">Monthly</button>
+    <button onclick="setPlan('annual')">Annual</button>
+  </div>
+
+  <div class="plans">
+    <div class="plan">
+      <h3>Basic</h3>
+      <div class="price" id="basic-price">$0</div>
+      <div class="subtext">Per user / Per month</div>
+      <button class="current-plan" disabled>Current Plan</button>
+    </div>
+    <div class="plan">
+      <h3>Standard</h3>
+      <div class="price" id="standard-price">$12</div>
+      <div class="subtext">Per user / Per month</div>
+      <button onclick="selectPlan('Standard')">Select Plan</button>
+    </div>
+    <div class="plan">
+      <h3>Professional</h3>
+      <div class="price" id="pro-price">$24</div>
+      <div class="subtext">Per user / Per month</div>
+      <button class="current-plan" disabled>Current Plan</button>
+    </div>
+  </div>
+
+  <div class="bottom-note">
+    100% secure payment method with money back guarantee.
+  </div>
+  <button class="upgrade-btn">Upgrade now</button>
+</div>
+
+<script>
+  function setPlan(type) {
+    const monthly = { basic: "$0", standard: "$12", pro: "$24" };
+    const annual = { basic: "$0", standard: "$120", pro: "$240" };
+
+    const prices = type === 'annual' ? annual : monthly;
+
+    document.getElementById("basic-price").innerText = prices.basic;
+    document.getElementById("standard-price").innerText = prices.standard;
+    document.getElementById("pro-price").innerText = prices.pro;
+
+    document.querySelectorAll(".toggle button").forEach(btn => btn.classList.remove("active"));
+    if (type === 'monthly') {
+      document.querySelector(".toggle button:first-child").classList.add("active");
+    } else {
+      document.querySelector(".toggle button:last-child").classList.add("active");
+    }
+  }
+
+  function selectPlan(plan) {
+    alert("You selected the " + plan + " plan!");
+  }
+</script>
+
+</body>
+</html>

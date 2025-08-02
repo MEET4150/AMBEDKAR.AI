@@ -101,24 +101,23 @@ def fetch_legal_news():
 
 # === Chat API ===
 @app.route('/chat', methods=['POST'])
-# @login_required_api
 def chat():
-    return jsonify({"success": True, "response": "Chat API is working!"})
     if 'email' not in session:
         return jsonify({"error": "Login required"}), 401
+
     try:
+        # Handle incoming data
         if request.is_json:
             user_input = request.json.get('message')
-            user_id = request.json.get('user_id', '555')
             file = None
         else:
             user_input = request.form.get('message') or request.form.get('user_input')
-            user_id = request.form.get('user_id', '555')
             file = request.files.get('file')
 
         if not user_input and not file:
             return jsonify({"error": "Please provide a message or upload a file."}), 400
 
+        # Extract file content if provided
         document_text = ""
         if file:
             ext = file.filename.split('.')[-1]
@@ -127,8 +126,8 @@ def chat():
             document_text = extract_text(file_path)
             os.remove(file_path)
 
+        # Build prompt
         prompt = f"{system_instruction}\n"
-
         if document_text:
             prompt += f"Document:\n{document_text}\n\n"
         if user_input:
@@ -136,21 +135,46 @@ def chat():
         else:
             prompt += "User Question: Please analyze the uploaded document.\n"
 
+        # Generate AI response
         response = model.generate_content(prompt, generation_config={"temperature": TEMPERATURE})
-        tokens_used = len(prompt.split()) + len(response.text.split())
-        status, msg = check_token_limit(user_id, tokens_used)
-        if not status:
-            return jsonify({"response": msg}), 403
+        ai_reply = response.text.strip()
+
+        # === TOKEN COUNTING ===
+        def count_tokens(text):
+            return len(text.strip().split()) // 4  # 4 words = 1 token
+
+        prompt_tokens = count_tokens(prompt)
+        response_tokens = count_tokens(ai_reply)
+        total_tokens = prompt_tokens + response_tokens
+
+        # === GET USER TOKEN ===
+        email = session.get('email')
+        user_token_doc = db.tokens.find_one({"email": email})
+        if not user_token_doc or user_token_doc.get("tokens", 0) <= 0:
+            return jsonify({"error": "No tokens found for this user"}), 403
+
+        remaining_tokens = user_token_doc["tokens"]
+
+        if total_tokens > remaining_tokens:
+            return jsonify({"error": "Insufficient tokens."}), 403
+
+        # === REDUCE TOKENS ONLY ===
+        db.tokens.update_one(
+            {"email": email},
+            {"$inc": {"tokens": -total_tokens}}
+        )
 
         return jsonify({
-            "response": response.text.strip(),
-            "tokens_used": tokens_used,
-            "token_status": msg
+            "success": True,
+            "response": ai_reply,
+            "tokens_used": total_tokens,
+            "remaining_tokens": remaining_tokens - total_tokens
         })
 
     except Exception as e:
         traceback.print_exc()
         return jsonify({"error": str(e)}), 500
+
 
 # === Import Routes & Register ===
 from routes.auth import auth_routes, init_db as init_auth
