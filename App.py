@@ -138,7 +138,7 @@ def chat():
         # Generate AI response
         response = model.generate_content(prompt, generation_config={"temperature": TEMPERATURE})
         ai_reply = response.text.strip()
-
+ 
         # === TOKEN COUNTING ===
         def count_tokens(text):
             return len(text.strip().split()) // 4  # 4 words = 1 token
