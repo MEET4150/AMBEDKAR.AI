@@ -28,7 +28,7 @@ client = MongoClient('mongodb://localhost:27017/')
 db = client["chat_db"]
 
 # === Gemini Setup ===
-configure(api_key="AIzaSyBqk4WXN7k4UhjaBCzgSmuWn_bEor5aSyw")  # Replace with your Gemini key
+configure(api_key="AIzaSyDlMXusLUTa-WIpd59ml2xnlGCis122V9k")  # Replace with your Gemini key
 model = GenerativeModel("gemini-2.0-flash")
 TEMPERATURE = 0.4
 system_instruction = (
